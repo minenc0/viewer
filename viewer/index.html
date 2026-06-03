@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+
+<title>PDF Viewer</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+
+<style>
+
+body{
+  margin:0;
+  background:#111;
+}
+
+#container{
+  width:95%;
+  max-width:900px;
+  margin:auto;
+  padding:20px;
+}
+
+canvas{
+  width:100%;
+  margin-bottom:15px;
+  background:white;
+}
+
+.error{
+  color:white;
+  text-align:center;
+  margin-top:100px;
+  font-size:25px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="container"></div>
+
+<script>
+
+const params =
+new URLSearchParams(window.location.search);
+
+const pdfUrl =
+params.get("file");
+
+if(!pdfUrl){
+
+  document.body.innerHTML =
+  "<div class='error'>File tidak ditemukan</div>";
+
+  throw new Error("No PDF");
+
+}
+
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+"https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.js";
+
+pdfjsLib.getDocument(pdfUrl).promise
+
+.then(function(pdf){
+
+  const container =
+  document.getElementById("container");
+
+  for(let i=1;i<=pdf.numPages;i++){
+
+    pdf.getPage(i)
+
+    .then(function(page){
+
+      const viewport =
+      page.getViewport({
+        scale:1.5
+      });
+
+      const canvas =
+      document.createElement("canvas");
+
+      const ctx =
+      canvas.getContext("2d");
+
+      canvas.width =
+      viewport.width;
+
+      canvas.height =
+      viewport.height;
+
+      container.appendChild(canvas);
+
+      page.render({
+
+        canvasContext:ctx,
+
+        viewport:viewport
+
+      });
+
+    });
+
+  }
+
+})
+
+.catch(function(error){
+
+  console.error(error);
+
+  document.body.innerHTML =
+  "<div class='error'>Gagal membuka PDF</div>";
+
+});
+
+</script>
+
+</body>
+</html>
